@@ -1,0 +1,14 @@
+diff --git a/src/requests/proxyhelp.py b/src/requests/proxyhelp.py
+--- /dev/null
++++ b/src/requests/proxyhelp.py
+@@ -0,0 +1,18 @@
++import socket
++import struct
++
++
++def ip_in_cidr_network(ip, network):
++    """Check whether an IPv4 address falls inside a CIDR network range."""
++    ipaddr = struct.unpack("=L", socket.inet_aton(ip))[0]
++    netaddr, bits = network.split("/")
++    netmask = struct.unpack("=L", socket.inet_aton(netaddr))[0]
++    return (ipaddr & netmask) == (netmask & ipaddr)

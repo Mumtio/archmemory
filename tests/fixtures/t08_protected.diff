@@ -1,0 +1,6 @@
+diff --git a/src/requests/compat.py b/src/requests/compat.py
+--- a/src/requests/compat.py
++++ b/src/requests/compat.py
+@@ -10,6 +10,3 @@
++# dropped legacy interpreter branches
++import collections.abc as collections_abc

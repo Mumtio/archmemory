@@ -1,0 +1,234 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Code to Memory</title>
+<style>
+:root{
+  --bg:#0D1219; --panel:#141C26; --ink:#E8EDF4; --ink2:#A9B4C2; --ink3:#6F7B89;
+  --rule:#243040; --edge:#3C4A5C;
+  --kw:#C58BD6; --str:#8FBF7F; --def:#6FA8DC; --cls:#E0B052; --com:#5D6B7A;
+  --node:#4E8CD4; --nodec:#D9A441; --bad:#E0653C;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);display:flex;
+     flex-direction:column}
+header{padding:16px 22px 12px;border-bottom:1px solid var(--rule);flex:none;
+       display:flex;align-items:baseline;gap:14px}
+h1{font-size:14px;margin:0;letter-spacing:.01em;font-weight:600}
+#act{font-family:var(--mono);font-size:11.5px;color:var(--ink3);letter-spacing:.06em}
+main{flex:1;display:flex;min-height:0}
+#code{width:44%;padding:18px 20px;overflow:hidden;border-right:1px solid var(--rule);
+      position:relative}
+pre{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.72}
+.ln{display:block;padding:0 8px;border-radius:3px;transition:background .3s,opacity .4s;
+    opacity:.35;white-space:pre}
+.ln.in{opacity:1}
+.ln.hot{background:#1D2B3C}
+.kw{color:var(--kw)}.st{color:var(--str)}.fn{color:var(--def)}.cl{color:var(--cls)}
+.cm{color:var(--com)}
+#stage{flex:1;position:relative;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+.chip{position:absolute;font-family:var(--mono);font-size:11px;padding:3px 8px;
+      border-radius:11px;background:var(--panel);border:1px solid var(--rule);
+      color:var(--ink2);pointer-events:none;white-space:nowrap;
+      transition:transform 1s cubic-bezier(.3,.8,.3,1),opacity .5s}
+.chip.i{border-color:#2E4A6B;color:#8FB4E0}
+.chip.f{border-color:#2E4A6B;color:var(--def)}
+.chip.c{border-color:#5C4820;color:var(--cls)}
+footer{flex:none;padding:11px 22px;border-top:1px solid var(--rule);display:flex;
+       align-items:center;gap:16px}
+button{font-family:var(--sans);font-size:12.5px;padding:6px 15px;border:1px solid var(--rule);
+       background:var(--panel);color:var(--ink);border-radius:4px;cursor:pointer}
+button:hover{border-color:var(--node)}
+#bar{flex:1;height:2px;background:var(--rule);position:relative}
+#fill{position:absolute;inset:0 auto 0 0;width:0;background:var(--node);transition:width .3s}
+#cap{font-family:var(--mono);font-size:11.5px;color:var(--ink3)}
+text{font-family:var(--mono);font-size:10px;fill:var(--ink3);text-anchor:middle}
+.flag{position:absolute;left:50%;top:22px;transform:translateX(-50%) translateY(-14px);
+      background:#2A1710;border:1px solid var(--bad);color:#F0A585;padding:9px 15px;
+      border-radius:5px;font-size:12.5px;opacity:0;transition:opacity .5s,transform .5s;
+      max-width:78%;line-height:1.45;text-align:center}
+.flag.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.flag b{font-family:var(--mono);font-size:11px;color:var(--bad)}
+</style>
+<header><h1>Code to Memory</h1><span id="act"></span></header>
+<main>
+  <div id="code"><pre id="src"></pre></div>
+  <div id="stage"><svg id="svg"></svg><div class="flag" id="flag"></div></div>
+</main>
+<footer>
+  <button id="play">Replay</button>
+  <div id="bar"><div id="fill"></div></div>
+  <span id="cap"></span>
+</footer>
+<script>
+const D = {"modules": [{"id": "requests", "label": "requests", "path": "C:\\archmemory\\target\\requests\\src\\requests\\__init__.py", "size": 2, "functions": 2, "classes": 0, "doc": "Requests HTTP Library", "constraint": null, "protected": null}, {"id": "requests.__version__", "label": "__version__", "path": "C:\\archmemory\\target\\requests\\src\\requests\\__version__.py", "size": 0, "functions": 0, "classes": 0, "doc": null, "constraint": null, "protected": null}, {"id": "requests._internal_utils", "label": "_internal_utils", "path": "C:\\archmemory\\target\\requests\\src\\requests\\_internal_utils.py", "size": 2, "functions": 2, "classes": 0, "doc": "requests._internal_utils", "constraint": null, "protected": null}, {"id": "requests._types", "label": "_types", "path": "C:\\archmemory\\target\\requests\\src\\requests\\_types.py", "size": 10, "functions": 2, "classes": 8, "doc": "requests._types", "constraint": null, "protected": null}, {"id": "requests.adapters", "label": "adapters", "path": "C:\\archmemory\\target\\requests\\src\\requests\\adapters.py", "size": 3, "functions": 1, "classes": 2, "doc": "requests.adapters", "constraint": {"id": "LAYER-01", "forbids": "requests.api,requests.sessions", "rationale": "adapters.py must not import api.py or sessions.py. The transport layer sits below the session layer; importing upward creates a cycle and couples the transport to the calling convention above it.", "severity": "critical"}, "protected": null}, {"id": "requests.api", "label": "api", "path": "C:\\archmemory\\target\\requests\\src\\requests\\api.py", "size": 8, "functions": 8, "classes": 0, "doc": "requests.api", "constraint": null, "protected": null}, {"id": "requests.auth", "label": "auth", "path": "C:\\archmemory\\target\\requests\\src\\requests\\auth.py", "size": 5, "functions": 1, "classes": 4, "doc": "requests.auth", "constraint": null, "protected": null}, {"id": "requests.certs", "label": "certs", "path": "C:\\archmemory\\target\\requests\\src\\requests\\certs.py", "size": 0, "functions": 0, "classes": 0, "doc": "requests.certs", "constraint": null, "protected": null}, {"id": "requests.compat", "label": "compat", "path": "C:\\archmemory\\target\\requests\\src\\requests\\compat.py", "size": 1, "functions": 1, "classes": 0, "doc": "requests.compat", "constraint": null, "protected": {"id": "PROTECT-01", "decision": "do not modify without owner sign-off", "reason": "compat.py is the single shim for interpreter and urllib3 differences, and every module imports it. Changes here have repository-wide blast radius and have historically caused breakage that only surfaces on one platform.", "risk": "high"}}, {"id": "requests.cookies", "label": "cookies", "path": "C:\\archmemory\\target\\requests\\src\\requests\\cookies.py", "size": 12, "functions": 8, "classes": 4, "doc": "requests.cookies", "constraint": null, "protected": null}, {"id": "requests.exceptions", "label": "exceptions", "path": "C:\\archmemory\\target\\requests\\src\\requests\\exceptions.py", "size": 25, "functions": 0, "classes": 25, "doc": "requests.exceptions", "constraint": null, "protected": null}, {"id": "requests.help", "label": "help", "path": "C:\\archmemory\\target\\requests\\src\\requests\\help.py", "size": 3, "functions": 3, "classes": 0, "doc": "Module containing bug report helper(s).", "constraint": null, "protected": null}, {"id": "requests.hooks", "label": "hooks", "path": "C:\\archmemory\\target\\requests\\src\\requests\\hooks.py", "size": 2, "functions": 2, "classes": 0, "doc": "requests.hooks", "constraint": null, "protected": null}, {"id": "requests.models", "label": "models", "path": "C:\\archmemory\\target\\requests\\src\\requests\\models.py", "size": 5, "functions": 0, "classes": 5, "doc": "requests.models", "constraint": {"id": "LAYER-03", "forbids": "requests.api,requests.sessions", "rationale": "models.py must not import api.py or sessions.py. Models describe request and response data and must not reach back into the layer that constructs them.", "severity": "high"}, "protected": null}, {"id": "requests.packages", "label": "packages", "path": "C:\\archmemory\\target\\requests\\src\\requests\\packages.py", "size": 0, "functions": 0, "classes": 0, "doc": null, "constraint": null, "protected": {"id": "PROTECT-02", "decision": "compatibility aliases, do not refactor", "reason": "packages.py exists to provide backwards-compatible import aliases for urllib3 and idna. Downstream code imports through it, and removing the aliases breaks consumers silently at import time.", "risk": "high"}}, {"id": "requests.sessions", "label": "sessions", "path": "C:\\archmemory\\target\\requests\\src\\requests\\sessions.py", "size": 5, "functions": 3, "classes": 2, "doc": "requests.sessions", "constraint": null, "protected": null}, {"id": "requests.status_codes", "label": "status_codes", "path": "C:\\archmemory\\target\\requests\\src\\requests\\status_codes.py", "size": 1, "functions": 1, "classes": 0, "doc": "The ``codes`` object defines a mapping from common names for HTTP statuses", "constraint": null, "protected": null}, {"id": "requests.structures", "label": "structures", "path": "C:\\archmemory\\target\\requests\\src\\requests\\structures.py", "size": 2, "functions": 0, "classes": 2, "doc": "requests.structures", "constraint": null, "protected": null}, {"id": "requests.utils", "label": "utils", "path": "C:\\archmemory\\target\\requests\\src\\requests\\utils.py", "size": 40, "functions": 40, "classes": 0, "doc": "requests.utils", "constraint": {"id": "LAYER-02", "forbids": "requests.api,requests.sessions,requests.adapters", "rationale": "utils.py must not import api.py, sessions.py, or adapters.py. utils is a leaf module that every other module depends on, so any upward import is a cycle.", "severity": "critical"}, "protected": null}], "links": [{"s": "requests._internal_utils", "t": "requests.compat", "source": "requests._internal_utils", "target": "requests.compat", "kind": "imports"}, {"s": "requests._types", "t": "requests.auth", "source": "requests._types", "target": "requests.auth", "kind": "imports"}, {"s": "requests._types", "t": "requests.cookies", "source": "requests._types", "target": "requests.cookies", "kind": "imports"}, {"s": "requests._types", "t": "requests.models", "source": "requests._types", "target": "requests.models", "kind": "imports"}, {"s": "requests._types", "t": "requests.structures", "source": "requests._types", "target": "requests.structures", "kind": "imports"}, {"s": "requests.adapters", "t": "requests.auth", "source": "requests.adapters", "target": "requests.auth", "kind": "imports"}, {"s": "requests.adapters", "t": "requests.compat", "source": "requests.adapters", "target": "requests.compat", "kind": "imports"}, {"s": "requests.adapters", "t": "requests.cookies", "source": "requests.adapters", "target": "requests.cookies", "kind": "imports"}, {"s": "requests.adapters", "t": "requests.exceptions", "source": "requests.adapters", "target": "requests.exceptions", "kind": "imports"}, {"s": "requests.adapters", "t": "requests.structures", "source": "requests.adapters", "target": "requests.structures", "kind": "imports"}, {"s": "requests.adapters", "t": "requests.utils", "source": "requests.adapters", "target": "requests.utils", "kind": "imports"}, {"s": "requests.adapters", "t": "requests._types", "source": "requests.adapters", "target": "requests._types", "kind": "imports"}, {"s": "requests.adapters", "t": "requests", "source": "requests.adapters", "target": "requests", "kind": "imports"}, {"s": "requests.adapters", "t": "requests.models", "source": "requests.adapters", "target": "requests.models", "kind": "imports"}, {"s": "requests.api", "t": "requests.models", "source": "requests.api", "target": "requests.models", "kind": "imports"}, {"s": "requests.api", "t": "requests", "source": "requests.api", "target": "requests", "kind": "imports"}, {"s": "requests.auth", "t": "requests._internal_utils", "source": "requests.auth", "target": "requests._internal_utils", "kind": "imports"}, {"s": "requests.auth", "t": "requests.compat", "source": "requests.auth", "target": "requests.compat", "kind": "imports"}, {"s": "requests.auth", "t": "requests.cookies", "source": "requests.auth", "target": "requests.cookies", "kind": "imports"}, {"s": "requests.auth", "t": "requests.utils", "source": "requests.auth", "target": "requests.utils", "kind": "imports"}, {"s": "requests.auth", "t": "requests.models", "source": "requests.auth", "target": "requests.models", "kind": "imports"}, {"s": "requests.cookies", "t": "requests._internal_utils", "source": "requests.cookies", "target": "requests._internal_utils", "kind": "imports"}, {"s": "requests.cookies", "t": "requests._types", "source": "requests.cookies", "target": "requests._types", "kind": "imports"}, {"s": "requests.cookies", "t": "requests.compat", "source": "requests.cookies", "target": "requests.compat", "kind": "imports"}, {"s": "requests.cookies", "t": "requests.models", "source": "requests.cookies", "target": "requests.models", "kind": "imports"}, {"s": "requests.exceptions", "t": "requests.compat", "source": "requests.exceptions", "target": "requests.compat", "kind": "imports"}, {"s": "requests.exceptions", "t": "requests.models", "source": "requests.exceptions", "target": "requests.models", "kind": "imports"}, {"s": "requests.help", "t": "requests", "source": "requests.help", "target": "requests", "kind": "imports"}, {"s": "requests.hooks", "t": "requests", "source": "requests.hooks", "target": "requests", "kind": "imports"}, {"s": "requests.hooks", "t": "requests.models", "source": "requests.hooks", "target": "requests.models", "kind": "imports"}, {"s": "requests.models", "t": "requests", "source": "requests.models", "target": "requests", "kind": "imports"}, {"s": "requests.models", "t": "requests._internal_utils", "source": "requests.models", "target": "requests._internal_utils", "kind": "imports"}, {"s": "requests.models", "t": "requests.auth", "source": "requests.models", "target": "requests.auth", "kind": "imports"}, {"s": "requests.models", "t": "requests.compat", "source": "requests.models", "target": "requests.compat", "kind": "imports"}, {"s": "requests.models", "t": "requests.exceptions", "source": "requests.models", "target": "requests.exceptions", "kind": "imports"}, {"s": "requests.models", "t": "requests.hooks", "source": "requests.models", "target": "requests.hooks", "kind": "imports"}, {"s": "requests.models", "t": "requests.status_codes", "source": "requests.models", "target": "requests.status_codes", "kind": "imports"}, {"s": "requests.models", "t": "requests.structures", "source": "requests.models", "target": "requests.structures", "kind": "imports"}, {"s": "requests.models", "t": "requests.utils", "source": "requests.models", "target": "requests.utils", "kind": "imports"}, {"s": "requests.models", "t": "requests.adapters", "source": "requests.models", "target": "requests.adapters", "kind": "imports"}, {"s": "requests.models", "t": "requests.cookies", "source": "requests.models", "target": "requests.cookies", "kind": "imports"}, {"s": "requests.packages", "t": "requests.compat", "source": "requests.packages", "target": "requests.compat", "kind": "imports"}, {"s": "requests.sessions", "t": "requests._internal_utils", "source": "requests.sessions", "target": "requests._internal_utils", "kind": "imports"}, {"s": "requests.sessions", "t": "requests._types", "source": "requests.sessions", "target": "requests._types", "kind": "imports"}, {"s": "requests.sessions", "t": "requests.auth", "source": "requests.sessions", "target": "requests.auth", "kind": "imports"}, {"s": "requests.sessions", "t": "requests.compat", "source": "requests.sessions", "target": "requests.compat", "kind": "imports"}, {"s": "requests.sessions", "t": "requests.cookies", "source": "requests.sessions", "target": "requests.cookies", "kind": "imports"}, {"s": "requests.sessions", "t": "requests.exceptions", "source": "requests.sessions", "target": "requests.exceptions", "kind": "imports"}, {"s": "requests.sessions", "t": "requests.hooks", "source": "requests.sessions", "target": "requests.hooks", "kind": "imports"}, {"s": "requests.sessions", "t": "requests.models", "source": "requests.sessions", "target": "requests.models", "kind": "imports"}, {"s": "requests.sessions", "t": "requests.status_codes", "source": "requests.sessions", "target": "requests.status_codes", "kind": "imports"}, {"s": "requests.sessions", "t": "requests.structures", "source": "requests.sessions", "target": "requests.structures", "kind": "imports"}, {"s": "requests.sessions", "t": "requests.utils", "source": "requests.sessions", "target": "requests.utils", "kind": "imports"}, {"s": "requests.sessions", "t": "requests", "source": "requests.sessions", "target": "requests", "kind": "imports"}, {"s": "requests.sessions", "t": "requests.adapters", "source": "requests.sessions", "target": "requests.adapters", "kind": "imports"}, {"s": "requests.status_codes", "t": "requests.structures", "source": "requests.status_codes", "target": "requests.structures", "kind": "imports"}, {"s": "requests.structures", "t": "requests.compat", "source": "requests.structures", "target": "requests.compat", "kind": "imports"}, {"s": "requests.utils", "t": "requests.__version__", "source": "requests.utils", "target": "requests.__version__", "kind": "imports"}, {"s": "requests.utils", "t": "requests._internal_utils", "source": "requests.utils", "target": "requests._internal_utils", "kind": "imports"}, {"s": "requests.utils", "t": "requests._types", "source": "requests.utils", "target": "requests._types", "kind": "imports"}, {"s": "requests.utils", "t": "requests.compat", "source": "requests.utils", "target": "requests.compat", "kind": "imports"}, {"s": "requests.utils", "t": "requests.cookies", "source": "requests.utils", "target": "requests.cookies", "kind": "imports"}, {"s": "requests.utils", "t": "requests.exceptions", "source": "requests.utils", "target": "requests.exceptions", "kind": "imports"}, {"s": "requests.utils", "t": "requests.structures", "source": "requests.utils", "target": "requests.structures", "kind": "imports"}, {"s": "requests.utils", "t": "requests", "source": "requests.utils", "target": "requests", "kind": "imports"}, {"s": "requests.utils", "t": "requests.models", "source": "requests.utils", "target": "requests.models", "kind": "imports"}], "forbidden": [{"s": "requests.adapters", "t": "requests.api", "source": "requests.adapters", "target": "requests.api", "rule": "LAYER-01", "severity": "critical", "why": "adapters.py must not import api.py or sessions.py. The transport layer sits below the session layer; importing upward creates a cycle and couples the transport to the calling convention above it.", "rationale": "adapters.py must not import api.py or sessions.py. The transport layer sits below the session layer; importing upward creates a cycle and couples the transport to the calling convention above it."}, {"s": "requests.adapters", "t": "requests.sessions", "source": "requests.adapters", "target": "requests.sessions", "rule": "LAYER-01", "severity": "critical", "why": "adapters.py must not import api.py or sessions.py. The transport layer sits below the session layer; importing upward creates a cycle and couples the transport to the calling convention above it.", "rationale": "adapters.py must not import api.py or sessions.py. The transport layer sits below the session layer; importing upward creates a cycle and couples the transport to the calling convention above it."}, {"s": "requests.utils", "t": "requests.api", "source": "requests.utils", "target": "requests.api", "rule": "LAYER-02", "severity": "critical", "why": "utils.py must not import api.py, sessions.py, or adapters.py. utils is a leaf module that every other module depends on, so any upward import is a cycle.", "rationale": "utils.py must not import api.py, sessions.py, or adapters.py. utils is a leaf module that every other module depends on, so any upward import is a cycle."}, {"s": "requests.utils", "t": "requests.sessions", "source": "requests.utils", "target": "requests.sessions", "rule": "LAYER-02", "severity": "critical", "why": "utils.py must not import api.py, sessions.py, or adapters.py. utils is a leaf module that every other module depends on, so any upward import is a cycle.", "rationale": "utils.py must not import api.py, sessions.py, or adapters.py. utils is a leaf module that every other module depends on, so any upward import is a cycle."}, {"s": "requests.utils", "t": "requests.adapters", "source": "requests.utils", "target": "requests.adapters", "rule": "LAYER-02", "severity": "critical", "why": "utils.py must not import api.py, sessions.py, or adapters.py. utils is a leaf module that every other module depends on, so any upward import is a cycle.", "rationale": "utils.py must not import api.py, sessions.py, or adapters.py. utils is a leaf module that every other module depends on, so any upward import is a cycle."}, {"s": "requests.models", "t": "requests.api", "source": "requests.models", "target": "requests.api", "rule": "LAYER-03", "severity": "high", "why": "models.py must not import api.py or sessions.py. Models describe request and response data and must not reach back into the layer that constructs them.", "rationale": "models.py must not import api.py or sessions.py. Models describe request and response data and must not reach back into the layer that constructs them."}, {"s": "requests.models", "t": "requests.sessions", "source": "requests.models", "target": "requests.sessions", "rule": "LAYER-03", "severity": "high", "why": "models.py must not import api.py or sessions.py. Models describe request and response data and must not reach back into the layer that constructs them.", "rationale": "models.py must not import api.py or sessions.py. Models describe request and response data and must not reach back into the layer that constructs them."}], "snippet": ["from .auth import _basic_auth_str", "from .compat import basestring, urlparse", "from .cookies import extract_cookies_to_jar", "from .models import Response", "from .utils import get_encoding_from_headers", "", "", "class BaseAdapter:", "    \"\"\"The base transport adapter.\"\"\"", "", "    def send(self, request, **kwargs):", "        raise NotImplementedError", "", "    def close(self):", "        raise NotImplementedError", "", "", "class HTTPAdapter(BaseAdapter):", "    def build_response(self, req, resp):", "        response = Response()", "        response.encoding = get_encoding_from_headers(resp.headers)", "        return response"], "extract": [{"line": 0, "kind": "import", "label": "requests.auth"}, {"line": 1, "kind": "import", "label": "requests.compat"}, {"line": 2, "kind": "import", "label": "requests.cookies"}, {"line": 3, "kind": "import", "label": "requests.models"}, {"line": 4, "kind": "import", "label": "requests.utils"}, {"line": 7, "kind": "class", "label": "BaseAdapter"}, {"line": 10, "kind": "function", "label": "send"}, {"line": 13, "kind": "function", "label": "close"}, {"line": 17, "kind": "class", "label": "HTTPAdapter"}, {"line": 18, "kind": "function", "label": "build_response"}], "stats": {"modules": 19, "functions": 237, "classes": 52, "edges": 588, "capabilities": 39, "constraints": 3, "decisions": 2}};
+const svg=document.getElementById('svg'), NS='http://www.w3.org/2000/svg';
+const stage=document.getElementById('stage'), srcEl=document.getElementById('src');
+const actEl=document.getElementById('act'), capEl=document.getElementById('cap');
+const fill=document.getElementById('fill'), flag=document.getElementById('flag');
+
+/* ---- syntax colouring, deliberately minimal ---- */
+function hl(s){
+  s = s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  s = s.replace(/(&quot;|&#34;)/g,'"');
+  s = s.replace(/("[^"]*")/g,'<span class="st">$1</span>');
+  s = s.replace(/\b(from|import|class|def|return|raise|self)\b/g,'<span class="kw">$1</span>');
+  s = s.replace(/(?<=class <\/span>)(\w+)/g,'<span class="cl">$1</span>');
+  s = s.replace(/(?<=def <\/span>)(\w+)/g,'<span class="fn">$1</span>');
+  return s;
+}
+srcEl.innerHTML = D.snippet.map((l,i)=>`<span class="ln" id="L${i}">${hl(l)||' '}</span>`).join('');
+
+let timers=[], chips=[], gEls={}, W=0,H=0;
+const at=(ms,fn)=>timers.push(setTimeout(fn,ms));
+const reset=()=>{
+  timers.forEach(clearTimeout); timers=[];
+  chips.forEach(c=>c.remove()); chips=[];
+  svg.innerHTML=''; flag.classList.remove('on');
+  document.querySelectorAll('.ln').forEach(e=>{e.classList.remove('in','hot');});
+  W=stage.clientWidth; H=stage.clientHeight;
+};
+
+function run(){
+  reset();
+  const T=20000;
+  const tick=setInterval(()=>{},100);
+  timers.push(tick);
+
+  /* Act 1 -- the source */
+  actEl.textContent='1 / 5  ·  source';
+  capEl.textContent='requests/adapters.py';
+  D.snippet.forEach((_,i)=>at(60*i,()=>document.getElementById('L'+i).classList.add('in')));
+  at(0,()=>fill.style.width='8%');
+
+  /* Act 2 -- definitions lift out */
+  const defs = D.extract.filter(e=>e.kind!=='import');
+  const imps = D.extract.filter(e=>e.kind==='import');
+  at(1900,()=>{actEl.textContent='2 / 5  ·  extracting definitions';
+               capEl.textContent='ast walk -> nodes'; fill.style.width='30%';});
+  defs.forEach((e,i)=>at(2100+i*380,()=>{
+    const ln=document.getElementById('L'+e.line);
+    ln.classList.add('hot'); setTimeout(()=>ln.classList.remove('hot'),700);
+    const c=document.createElement('div');
+    c.className='chip '+(e.kind==='class'?'c':'f');
+    c.textContent=(e.kind==='class'?'class ':'def ')+e.label;
+    const r=ln.getBoundingClientRect(), sr=stage.getBoundingClientRect();
+    c.style.left='0px'; c.style.top='0px';
+    c.style.transform=`translate(${r.right-sr.left+14}px,${r.top-sr.top}px)`;
+    stage.append(c); chips.push(c);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      c.style.transform=`translate(${W*0.30+ (i%2)*128}px,${90+i*40}px)`;
+    }));
+  }));
+
+  /* Act 3 -- imports become edges */
+  at(4300,()=>{actEl.textContent='3 / 5  ·  resolving imports';
+               capEl.textContent='from .utils import  ->  requests.utils'; fill.style.width='52%';});
+  imps.forEach((e,i)=>at(4500+i*300,()=>{
+    const ln=document.getElementById('L'+e.line);
+    ln.classList.add('hot'); setTimeout(()=>ln.classList.remove('hot'),600);
+    const c=document.createElement('div'); c.className='chip i'; c.textContent=e.label;
+    const r=ln.getBoundingClientRect(), sr=stage.getBoundingClientRect();
+    c.style.transform=`translate(${r.right-sr.left+14}px,${r.top-sr.top}px)`;
+    stage.append(c); chips.push(c);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      c.style.transform=`translate(${W*0.62}px,${90+i*40}px)`;
+    }));
+  }));
+
+  /* Act 4 -- the whole package */
+  at(6400,()=>{
+    actEl.textContent='4 / 5  ·  the whole package';
+    capEl.textContent=`${D.modules.length} modules · ${D.links.length} import edges`;
+    fill.style.width='78%';
+    chips.forEach(c=>c.style.opacity='0');
+    buildGraph();
+  });
+
+  /* Act 5 -- constraints */
+  at(11500,()=>{
+    actEl.textContent='5 / 5  ·  constraint memory';
+    capEl.textContent='rules the source cannot tell you';
+    fill.style.width='100%';
+    showForbidden();
+  });
+}
+
+/* ---------- graph ---------- */
+let nodes=[],links=[],lineEls=[],nodeEls=[],fEl=null,raf=null;
+function buildGraph(){
+  const ids={};
+  nodes = D.modules.map((m,i)=>{
+    const a=i/D.modules.length*6.283;
+    return {...m, x:W/2+Math.cos(a)*Math.min(W,H)*.32,
+                  y:H/2+Math.sin(a)*Math.min(W,H)*.32, vx:0,vy:0};
+  });
+  nodes.forEach(n=>ids[n.id]=n);
+  links = D.links.filter(l=>ids[l.s]&&ids[l.t]).map(l=>({s:ids[l.s],t:ids[l.t]}));
+
+  const gL=document.createElementNS(NS,'g'), gN=document.createElementNS(NS,'g');
+  svg.append(gL,gN);
+  lineEls=links.map(()=>{const e=document.createElementNS(NS,'line');
+    e.setAttribute('stroke','var(--edge)');e.setAttribute('stroke-width','1');
+    e.setAttribute('opacity','0');gL.append(e);return e;});
+  nodeEls=nodes.map(n=>{const g=document.createElementNS(NS,'g');
+    const c=document.createElementNS(NS,'circle');
+    c.setAttribute('r',0); c.setAttribute('fill','var(--node)');
+    c.setAttribute('fill-opacity','.85');
+    const t=document.createElementNS(NS,'text'); t.textContent=n.label;
+    t.setAttribute('dy',rad(n)+13); t.setAttribute('opacity','0');
+    g.append(c,t); gN.append(g); return g;});
+  nodes.forEach((n,i)=>setTimeout(()=>{
+    nodeEls[i].querySelector('circle').setAttribute('r',rad(n));
+    nodeEls[i].querySelector('circle').style.transition='r .5s';
+    nodeEls[i].querySelector('text').setAttribute('opacity','1');
+  },i*55));
+  setTimeout(()=>lineEls.forEach((e,i)=>setTimeout(()=>e.setAttribute('opacity','.55'),i*9)),900);
+  if(!raf) sim();
+}
+const rad=n=>6+Math.sqrt(n.size)*1.7;
+function sim(){
+  for(const n of nodes){n.vx*=.85;n.vy*=.85;}
+  for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
+    const a=nodes[i],b=nodes[j];let dx=b.x-a.x,dy=b.y-a.y,d2=dx*dx+dy*dy||1,d=Math.sqrt(d2);
+    const rp=8000/d2,ux=dx/d,uy=dy/d;
+    a.vx-=ux*rp;a.vy-=uy*rp;b.vx+=ux*rp;b.vy+=uy*rp;
+    const mn=rad(a)+rad(b)+26;
+    if(d<mn){const p=(mn-d)*.3;a.vx-=ux*p;a.vy-=uy*p;b.vx+=ux*p;b.vy+=uy*p;}
+  }
+  for(const l of links){let dx=l.t.x-l.s.x,dy=l.t.y-l.s.y,d=Math.hypot(dx,dy)||1;
+    const f=(d-120)*.011,ux=dx/d,uy=dy/d;
+    l.s.vx+=ux*f;l.s.vy+=uy*f;l.t.vx-=ux*f;l.t.vy-=uy*f;}
+  for(const n of nodes){n.vx+=(W/2-n.x)*.0025;n.vy+=(H/2-n.y)*.0025;
+    n.x+=n.vx;n.y+=n.vy;const p=rad(n)+26;
+    n.x=Math.max(p,Math.min(W-p,n.x));n.y=Math.max(p,Math.min(H-p-12,n.y));}
+  links.forEach((l,i)=>{const e=lineEls[i];e.setAttribute('x1',l.s.x);e.setAttribute('y1',l.s.y);
+    e.setAttribute('x2',l.t.x);e.setAttribute('y2',l.t.y);});
+  nodes.forEach((n,i)=>nodeEls[i].setAttribute('transform',`translate(${n.x},${n.y})`));
+  if(fEl){const f=D.forbidden[0];const a=nodes.find(n=>n.id===f.s),b=nodes.find(n=>n.id===f.t);
+    if(a&&b){fEl.setAttribute('x1',a.x);fEl.setAttribute('y1',a.y);
+             fEl.setAttribute('x2',b.x);fEl.setAttribute('y2',b.y);}}
+  raf=requestAnimationFrame(sim);
+}
+function showForbidden(){
+  const f=D.forbidden[0]; if(!f) return;
+  fEl=document.createElementNS(NS,'line');
+  fEl.setAttribute('stroke','var(--bad)');fEl.setAttribute('stroke-width','2.5');
+  fEl.setAttribute('stroke-dasharray','6 5');
+  svg.append(fEl);
+  const an=document.createElementNS(NS,'animate');
+  an.setAttribute('attributeName','opacity');an.setAttribute('values','.35;1;.35');
+  an.setAttribute('dur','1.6s');an.setAttribute('repeatCount','indefinite');
+  fEl.append(an);
+  flag.innerHTML=`<b>${f.rule}</b> &nbsp; ${f.s.split('.').pop()} must not import `+
+                 `${f.t.split('.').pop()}<br>${f.why||''}`;
+  flag.classList.add('on');
+}
+
+document.getElementById('play').addEventListener('click',run);
+addEventListener('resize',()=>{W=stage.clientWidth;H=stage.clientHeight;});
+setTimeout(run,350);
+</script>

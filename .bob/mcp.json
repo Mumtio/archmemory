@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "archmemory": {
+      "command": "python",
+      "args": [
+        "-m",
+        "archmemory.server",
+        "--db",
+        "archmemory.db"
+      ],
+      "cwd": "c:/archmemory",
+      "env": {
+        "PYTHONPATH": "c:/archmemory",
+        "PYTHONIOENCODING": "utf-8"
+      }
+    }
+  }
+}

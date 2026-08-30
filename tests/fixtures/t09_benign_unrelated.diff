@@ -1,0 +1,10 @@
+diff --git a/src/requests/mathutils.py b/src/requests/mathutils.py
+--- /dev/null
++++ b/src/requests/mathutils.py
+@@ -0,0 +1,10 @@
++def compute_fibonacci_sequence(n):
++    """Return a list of the first n Fibonacci numbers."""
++    seq = [0, 1]
++    for _ in range(n - 2):
++        seq.append(seq[-1] + seq[-2])
++    return seq[:n]

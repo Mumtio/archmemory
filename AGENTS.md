@@ -24,7 +24,7 @@ ruff format src/requests tests                      # format
 pyright                                             # type-check
 ```
 
-**Important:** `pytest` in `target/requests` runs with `--doctest-modules` by default (set in `pyproject.toml`). Doctests in source files are executed automatically.
+**Important:** `pytest` in `target/requests` has `--doctest-modules` in `addopts`, but `testpaths = ["tests"]` limits the default run to the 635 tests in `tests/` only — src doctests are **not** collected unless you explicitly point pytest at `src/requests` (adds 11 more).
 
 ## Architecture: archmemory components to build
 

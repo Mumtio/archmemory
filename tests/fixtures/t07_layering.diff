@@ -1,0 +1,10 @@
+diff --git a/src/requests/adapters.py b/src/requests/adapters.py
+--- a/src/requests/adapters.py
++++ b/src/requests/adapters.py
+@@ -60,3 +60,9 @@
++from .api import get as _api_get
++
++
++def fetch(url, **kwargs):
++    """Convenience GET helper."""
++    return _api_get(url, **kwargs)
